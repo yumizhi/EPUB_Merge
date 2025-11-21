@@ -1,10 +1,10 @@
-# EPUB_Merge
+# lightweight_epub_merge_tool
 
-[![License](https://img.shields.io/github/license/yumizhi/EPUB_Merge)](https://github.com/yumizhi/EPUB_Merge/blob/main/LICENSE)
-[![GitHub release](https://img.shields.io/github/v/release/yumizhi/EPUB_Merge)](https://github.com/yumizhi/EPUB_Merge/releases/latest)
-[![GitHub all releases](https://img.shields.io/github/downloads/yumizhi/EPUB_Merge/total)](https://github.com/yumizhi/EPUB_Merge/releases)
-[![GitHub stars](https://img.shields.io/github/stars/yumizhi/EPUB_Merge?style=social)](https://github.com/yumizhi/EPUB_Merge/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/yumizhi/EPUB_Merge?style=social)](https://github.com/yumizhi/EPUB_Merge/network/members)
+[![License](https://img.shields.io/github/license/yumizhi/lightweight_epub_merge_tool)](https://github.com/yumizhi/lightweight_epub_merge_tool/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/yumizhi/lightweight_epub_merge_tool)](https://github.com/yumizhi/lightweight_epub_merge_tool/releases/latest)
+[![GitHub all releases](https://img.shields.io/github/downloads/yumizhi/lightweight_epub_merge_tool/total)](https://github.com/yumizhi/lightweight_epub_merge_tool/releases)
+[![GitHub stars](https://img.shields.io/github/stars/yumizhi/lightweight_epub_merge_tool?style=social)](https://github.com/yumizhi/lightweight_epub_merge_tool/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/yumizhi/lightweight_epub_merge_tool?style=social)](https://github.com/yumizhi/lightweight_epub_merge_tool/network/members)
 
 
 > 最近在用Apple books看轻小说，但是找到的epub都是分卷的形式，手机阅读起来有点繁琐。不想折腾Calibre，github上另一个工具使用上有点不合我的心意，所以自己写了一个小工具进行小说分卷合并。
@@ -42,8 +42,8 @@
 本项目是一个简单的 Python 脚本，无需打包安装，直接 clone 后使用即可。
 
 ```bash
-git clone https://github.com/yumizhi/EPUB_Merge.git
-cd EPUB_Merge
+git clone https://github.com/yumizhi/lightweight_epub_merge_tool.git
+cd lightweight_epub_merge_tool
 ```
 
 要求：
