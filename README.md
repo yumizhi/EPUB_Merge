@@ -87,6 +87,8 @@ python3 merge_epubs.py [outputs_name] [inputs_name] ...
 * `epub_merge_gui_tk.py`：基于 Tkinter，零额外依赖，功能简单；
 * `epub_merge_gui.py`：基于 PySide6（Qt），交互体验更好，推荐使用。
 
+> 需要注意的是，gui文件使用时需要与 merge_epubs.py 处于同一目录
+
 #### 2.1 Tk 版：`epub_merge_gui_tk.py`
 
 适用于不想安装额外 GUI 库、只要一个“能点就行”的界面。
