@@ -220,7 +220,7 @@ class EpubMergeWindow(QMainWindow):
             item.setData(Qt.UserRole, p)
             self.list_widget.addItem(item)
 
-        self._set_status(f"已添加 {len(new_paths)} 个文件，当前共 {len(all_paths)} 个。")
+        self._set_status(f"新添加 {len(new_paths)} 个文件，当前共 {len(all_paths)} 个。")
 
     def on_add_files(self):
         files, _ = QFileDialog.getOpenFileNames(
