@@ -8,7 +8,9 @@
 
 A lightweight EPUB merge tool and GUI for multi-volume light novels.
 
-> 一个针对轻小说/多卷 EPUB 的轻量合并工具：尽量保留插图与章节结构，并重建按卷分组的目录（TOC）。
+一个针对轻小说/多卷 EPUB 的轻量合并工具：尽量保留插图与章节结构，并重建按卷分组的目录（TOC）。
+
+![Lightweight EPUB Merge Tool Screenshot](./assets/merge_epubs_tool_gui.png)
 
 ---
 
