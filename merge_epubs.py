@@ -278,6 +278,8 @@ def build_base_opf(title: str, metadata: Dict[str, Optional[str]]) -> ET.Element
 def _format_volume_label(idx: int, alias: str, language: Optional[str], custom_template: Optional[str]) -> str:
     if custom_template:
         return custom_template.format(n=idx + 1, name=alias)
+    if alias:
+        return alias
     if language and language in LOCALIZED_VOL_LABELS:
         return LOCALIZED_VOL_LABELS[language].format(n=idx + 1)
     return LOCALIZED_VOL_LABELS.get("en", "Volume {n}").format(n=idx + 1)
@@ -309,10 +311,11 @@ def merge_epubs(output_path, input_items, title=None, metadata: Optional[Dict[st
 
     with zipfile.ZipFile(resolved_out, "w") as out_zip:
         out_zip.writestr("mimetype", EPUB_MIMETYPE, compress_type=zipfile.ZIP_STORED)
-        out_zip.writestr("META-INF/container.xml", 
+        out_zip.writestr("META-INF/container.xml",
             f'<?xml version="1.0"?><container version="1.0" xmlns="{CONTAINER_NS}"><rootfiles><rootfile full-path="{opf_rel}" media-type="application/oebps-package+xml"/></rootfiles></container>')
 
         written = set()
+        detected_cover_id = None
 
         for idx, item in enumerate(input_items):
             # item 结构: (path, alias, user_chaps)
@@ -328,10 +331,17 @@ def merge_epubs(output_path, input_items, title=None, metadata: Optional[Dict[st
                 opf_p = get_opf_path(zin)
                 src_dir = str(PurePosixPath(opf_p).parent)
                 if src_dir == ".": src_dir = ""
-                
+
                 # --- 复制资源 ---
                 bk_root = ET.fromstring(zin.read(opf_p))
                 bk_man = bk_root.find("opf:manifest", NSMAP)
+                cover_meta_id = None
+                if idx == 0:
+                    bk_meta = bk_root.find("opf:metadata", NSMAP)
+                    if bk_meta is not None:
+                        for meta in bk_meta.findall("opf:meta", NSMAP):
+                            if meta.get("name") == "cover" and meta.get("content"):
+                                cover_meta_id = meta.get("content")
                 href_map = {} # old -> new
 
                 for it in bk_man.findall("opf:item", NSMAP):
@@ -339,7 +349,14 @@ def merge_epubs(output_path, input_items, title=None, metadata: Optional[Dict[st
                     if not ohref: continue
                     nhref = f"{prefix}{ohref}" if prefix else ohref
                     nid = f"{id_pfx}{it.get('id')}"
-                    
+
+                    if idx == 0 and detected_cover_id is None:
+                        props = (it.get("properties") or "").split()
+                        if "cover-image" in props:
+                            detected_cover_id = nid
+                        elif cover_meta_id and it.get("id") == cover_meta_id:
+                            detected_cover_id = nid
+
                     # 记录映射
                     href_map[ohref] = nhref
                     href_map[unquote(ohref)] = nhref
@@ -414,6 +431,8 @@ def merge_epubs(output_path, input_items, title=None, metadata: Optional[Dict[st
         # 4. 封面处理
         if cover is not None:
             apply_cover_image(out_zip, opf_root, opf_dir, cover, replace_cover)
+        elif detected_cover_id:
+            _ensure_cover_metadata(opf_root, detected_cover_id)
 
         # 5. 生成总 NAV (书 -> 卷 -> 章)
         # 获取第一卷的链接作为书名的链接

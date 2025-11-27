@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QLineEdit, QFileDialog, QMessageBox,
     QAbstractItemView, QProgressBar, QFrame, QFormLayout,
     QTreeWidget, QTreeWidgetItem, QStyle, QHeaderView, QSizePolicy,
-    QTextEdit, QCheckBox, QDialog, QDialogButtonBox
+    QTextEdit, QCheckBox, QDialog, QDialogButtonBox, QSplitter
 )
 from PySide6.QtCore import Qt, QThread, Signal, QSettings, QUrl, QSize
 from PySide6.QtGui import QKeySequence, QShortcut, QFont, QDesktopServices, QIcon, QColor, QPalette
@@ -266,7 +266,7 @@ class App(QMainWindow):
         main_widget.setObjectName("CentralWidget")
         self.setCentralWidget(main_widget)
         
-        # 主布局：垂直
+        # 主布局：垂直，中央使用可伸缩分隔
         main_layout = QVBoxLayout(main_widget)
         main_layout.setContentsMargins(24, 24, 24, 24)
         main_layout.setSpacing(20)
@@ -275,20 +275,20 @@ class App(QMainWindow):
         # 1. 顶部标题栏 + 工具栏 (Header)
         # ----------------------------------------------------
         header_layout = QHBoxLayout()
-        
+
         title_lbl = QLabel("书籍列表")
         title_lbl.setStyleSheet("font-size: 16px; font-weight: 700; color: #1a1a1a;")
-        
+
         header_layout.addWidget(title_lbl)
         header_layout.addStretch()
 
         # 工具按钮
         self.btn_add = QPushButton("添加书籍")
         self.btn_add.setIcon(self.style().standardIcon(QStyle.SP_FileIcon))
-        
+
         self.btn_sort = QPushButton(" 自然排序")
         self.btn_sort.setIcon(self.style().standardIcon(QStyle.SP_FileDialogListView))
-        
+
         self.btn_clear = QPushButton(" 清空")
         self.btn_clear.setProperty("class", "Danger") # 使用 Danger 样式
         self.btn_clear.setIcon(self.style().standardIcon(QStyle.SP_DialogDiscardButton))
@@ -296,7 +296,7 @@ class App(QMainWindow):
         header_layout.addWidget(self.btn_add)
         header_layout.addWidget(self.btn_sort)
         header_layout.addWidget(self.btn_clear)
-        
+
         main_layout.addLayout(header_layout)
 
         # ----------------------------------------------------
@@ -306,27 +306,28 @@ class App(QMainWindow):
         tree_card.setProperty("class", "Card")
         tree_layout = QVBoxLayout(tree_card)
         tree_layout.setContentsMargins(10, 10, 10, 10)
-        
+
         self.tree = StrictTreeWidget(self.add_files)
+        self.tree.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         tree_layout.addWidget(self.tree)
-        
+
         # 删除按钮悬浮在列表下方或集成在右键菜单，这里放在卡片底部
         bottom_tree_layout = QHBoxLayout()
         self.hint_lbl = QLabel("💡 提示: 拖拽调整顺序，双击修改名称。最终结构: 书名 > 卷名 > 章节")
         self.hint_lbl.setStyleSheet("color: #999; font-size: 12px;")
-        
+
         self.btn_del = QPushButton("移除选中")
         self.btn_del.setCursor(Qt.PointingHandCursor)
         self.btn_del.setStyleSheet("border: none; color: #888;")
         self.btn_del.setIcon(self.style().standardIcon(QStyle.SP_TrashIcon))
-        
+
         bottom_tree_layout.addWidget(self.hint_lbl)
         bottom_tree_layout.addStretch()
         bottom_tree_layout.addWidget(self.btn_del)
-        
+
         tree_layout.addLayout(bottom_tree_layout)
-        
-        main_layout.addWidget(tree_card, stretch=3)
+
+        tree_card.setMinimumWidth(420)
 
         # ----------------------------------------------------
         # 3. 设置区域 (Card)
@@ -427,7 +428,19 @@ class App(QMainWindow):
 
         settings_layout.addLayout(compact_layout)
 
-        main_layout.addWidget(settings_card, stretch=2)
+        right_panel = QWidget()
+        right_panel_layout = QVBoxLayout(right_panel)
+        right_panel_layout.setContentsMargins(0, 0, 0, 0)
+        right_panel_layout.addWidget(settings_card)
+
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(tree_card)
+        splitter.addWidget(right_panel)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 2)
+        splitter.setHandleWidth(10)
+
+        main_layout.addWidget(splitter)
 
         # ----------------------------------------------------
         # 4. 底部操作栏 (Footer)
