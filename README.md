@@ -8,13 +8,13 @@ A lightweight EPUB merge tool and GUI for multi-volume light novels.
 
 ## ✨ Features / 功能特性
 
-- Merge multiple `.epub` volumes into a single omnibus book  
+- Merge multiple `.epub` volumes into a single omnibus book
   将多卷 EPUB 合并为一本“合订本”
-- Preserve all resources of each volume  
+- Preserve all resources of each volume
   保留每卷的文本、插图、CSS 等资源，不丢插图页
-- Support both EPUB 3 `nav.xhtml` and EPUB 2 `toc.ncx`  
+- Support both EPUB 3 `nav.xhtml` and EPUB 2 `toc.ncx`
   自动识别并合并不同目录格式
-- Rebuild a global table of contents grouped by volume  
+- Rebuild a global table of contents grouped by volume
   重建按卷分组的总目录，例如：
   - 第 1 卷 xxx
     - 序章
@@ -28,12 +28,13 @@ A lightweight EPUB merge tool and GUI for multi-volume light novels.
   适配不同站点导出的 EPUB：
   - 自动处理 `Chapter 1.html` / `Chapter%201.html` 等路径差异
   - 自动查找 `content.opf`（支持根目录、`OEBPS/`、`EPUB/` 等多种结构）
-- Two usage modes  
+- Two usage modes
   两种使用方式：
   - 命令行工具：适合脚本化批处理
   - 图形界面（GUI）：
     - Tk 版：基于 Tkinter，零额外依赖（仅为legacy中的旧版本代码支持，注意merge_tool版本）
-    - Qt 版：基于 PySide6，支持拖拽排序、拖文件进窗口、自然排序等，体验更好
+  - Qt 版：基于 PySide6，支持拖拽排序、拖文件进窗口、自然排序等，体验更好
+  - 元数据&封面：命令行支持设置作者、语言、出版社、出版日期、ISBN、主题、描述等基础信息，并能添加/替换/提取封面图片
 
 ---
 
@@ -84,6 +85,14 @@ python3 merge_epubs.py OUTPUT.epub VOL1.epub VOL2.epub VOL3.epub ...
 
 * `OUTPUT.epub`：输出的合并后 EPUB 文件路径
 * `VOLX.epub`：各卷输入文件，顺序即为合并顺序
+
+常用可选参数：
+
+- `--title` / `--author` / `--language` / `--publisher` / `--published` / `--isbn` / `--subject` / `--description`：批量写入或覆盖基础元数据（作者、语言、出版社、出版时间、ISBN 等，作者与主题支持用 `//` 分隔多个值）。
+- `--volume-label-template`：自定义卷标题模板，例如 `"제 {n}권"`、`"Vol.{n} {name}"`。未指定时会根据语言自动选择常见格式（中/日/韩/英）。
+- `-c/--cover FILE`：若当前合并产物缺失封面则添加。
+- `-C/--replace-cover FILE`：无论是否已有封面都强制替换为指定图片。
+- `-S/--extract-cover PATH`：从第一本输入 EPUB 中提取封面到指定路径（自动补齐扩展名）。
 
 示例：
 
@@ -145,6 +154,7 @@ python3 merge_epubs_gui.py
 
   * 自动将 `xxx 2.epub` 排在 `xxx 11.epub` 之前（按数值排序而非纯字符串排序）
 * 输出路径选择与合并流程与 Tk 版一致
+* 元数据 & 封面：可在界面中直接填写作者、语言、出版社、出版日期、ISBN、主题、简介、卷标题模板，并选择封面图片（支持“仅新增”或“强制替换”），也可一键提取首卷封面到本地
 
 适用场景：
 
