@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLabel, QLineEdit, QFileDialog, QMessageBox,
     QAbstractItemView, QProgressBar, QFrame, QFormLayout,
     QTreeWidget, QTreeWidgetItem, QStyle, QHeaderView, QSizePolicy,
-    QTextEdit, QCheckBox
+    QTextEdit, QCheckBox, QDialog, QDialogButtonBox
 )
 from PySide6.QtCore import Qt, QThread, Signal, QSettings, QUrl, QSize
 from PySide6.QtGui import QKeySequence, QShortcut, QFont, QDesktopServices, QIcon, QColor, QPalette
@@ -240,8 +240,23 @@ class App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("EPUB Merge")
-        self.resize(900, 750)
+        self.resize(1100, 750)
         self.set = QSettings("MySoft", "EpubMergeModern")
+
+        # 低频元数据控件（放在弹窗中使用）
+        self.in_language = QLineEdit()
+        self.in_language.setPlaceholderText("语言代码 (如 zh / en / ja / ko)")
+        self.in_publisher = QLineEdit()
+        self.in_publisher.setPlaceholderText("出版社")
+        self.in_published = QLineEdit()
+        self.in_published.setPlaceholderText("出版日期 (YYYY-MM-DD)")
+        self.in_isbn = QLineEdit()
+        self.in_isbn.setPlaceholderText("ISBN")
+        self.in_subject = QLineEdit()
+        self.in_subject.setPlaceholderText("主题标签，多个用 // 分隔")
+        self.in_description = QTextEdit()
+        self.in_description.setPlaceholderText("简介 / 书籍描述")
+        self.in_description.setFixedHeight(100)
         
         # 应用样式
         self.setStyleSheet(MODERN_STYLESHEET)
@@ -311,7 +326,7 @@ class App(QMainWindow):
         
         tree_layout.addLayout(bottom_tree_layout)
         
-        main_layout.addWidget(tree_card, stretch=1)
+        main_layout.addWidget(tree_card, stretch=3)
 
         # ----------------------------------------------------
         # 3. 设置区域 (Card)
@@ -323,82 +338,48 @@ class App(QMainWindow):
         settings_layout.setSpacing(15)
         
         # 标题行
-        st_title = QLabel("输出设置")
+        st_title = QLabel("输出与封面")
         st_title.setStyleSheet("font-weight: bold; font-size: 14px; margin-bottom: 5px;")
         settings_layout.addWidget(st_title)
 
-        # 表单
-        form_grid = QHBoxLayout()
-        form_grid.setSpacing(20)
+        # 主要配置：保留高频项
+        compact_layout = QVBoxLayout()
+        compact_layout.setSpacing(10)
 
-        # 左侧：元数据字段
-        meta_layout = QVBoxLayout()
-        meta_layout.setSpacing(10)
-
+        title_row = QHBoxLayout()
         self.in_title = QLineEdit()
         self.in_title.setPlaceholderText("总标题 (例如: 某某合集)")
-        meta_layout.addWidget(QLabel("书籍标题:"))
-        meta_layout.addWidget(self.in_title)
+        title_row.addWidget(QLabel("书籍标题:"))
+        title_row.addWidget(self.in_title)
+        compact_layout.addLayout(title_row)
 
+        author_row = QHBoxLayout()
         self.in_author = QLineEdit()
         self.in_author.setPlaceholderText("作者名 (可选)")
-        meta_layout.addWidget(QLabel("作者:"))
-        meta_layout.addWidget(self.in_author)
+        author_row.addWidget(QLabel("作者:"))
+        author_row.addWidget(self.in_author)
+        compact_layout.addLayout(author_row)
 
-        self.in_language = QLineEdit()
-        self.in_language.setPlaceholderText("语言代码 (如 zh / en / ja / ko)")
-        meta_layout.addWidget(QLabel("语言:"))
-        meta_layout.addWidget(self.in_language)
-
-        self.in_publisher = QLineEdit()
-        self.in_publisher.setPlaceholderText("出版社")
-        meta_layout.addWidget(QLabel("出版社:"))
-        meta_layout.addWidget(self.in_publisher)
-
-        self.in_published = QLineEdit()
-        self.in_published.setPlaceholderText("出版日期 (YYYY-MM-DD)")
-        meta_layout.addWidget(QLabel("出版日期:"))
-        meta_layout.addWidget(self.in_published)
-
-        self.in_isbn = QLineEdit()
-        self.in_isbn.setPlaceholderText("ISBN")
-        meta_layout.addWidget(QLabel("ISBN:"))
-        meta_layout.addWidget(self.in_isbn)
-
-        self.in_subject = QLineEdit()
-        self.in_subject.setPlaceholderText("主题标签，多个用 // 分隔")
-        meta_layout.addWidget(QLabel("主题/标签:"))
-        meta_layout.addWidget(self.in_subject)
-
-        self.in_description = QTextEdit()
-        self.in_description.setPlaceholderText("简介 / 书籍描述")
-        self.in_description.setFixedHeight(80)
-        meta_layout.addWidget(QLabel("简介:"))
-        meta_layout.addWidget(self.in_description)
-
-        # 右侧：输出路径
-        out_layout = QVBoxLayout()
-        out_layout.setSpacing(10)
-        
+        path_row = QHBoxLayout()
         self.in_out = QLineEdit()
         self.in_out.setPlaceholderText("选择保存位置...")
         self.in_out.setReadOnly(False)
-        
+
         btn_browse = QPushButton("浏览...")
-        btn_browse.setFixedWidth(80)
+        btn_browse.setFixedWidth(90)
         btn_browse.clicked.connect(self.on_browse)
-        
-        path_row = QHBoxLayout()
+
+        path_row.addWidget(QLabel("输出文件:"))
         path_row.addWidget(self.in_out)
         path_row.addWidget(btn_browse)
+        compact_layout.addLayout(path_row)
 
-        out_layout.addWidget(QLabel("输出文件:"))
-        out_layout.addLayout(path_row)
-        
+        vol_row = QHBoxLayout()
         self.in_volume_label = QLineEdit()
         self.in_volume_label.setPlaceholderText("卷标题模板 (如 'Vol.{n} {name}' / '제 {n}권')")
-        out_layout.addWidget(QLabel("卷标题模板:"))
-        out_layout.addWidget(self.in_volume_label)
+        vol_row.addWidget(QLabel("卷标题模板:"))
+        vol_row.addWidget(self.in_volume_label)
+        compact_layout.addLayout(vol_row)
 
         cover_row = QHBoxLayout()
         self.in_cover = QLineEdit()
@@ -406,15 +387,16 @@ class App(QMainWindow):
         btn_cover = QPushButton("选择封面")
         btn_cover.setFixedWidth(90)
         btn_cover.clicked.connect(self.on_choose_cover)
+        cover_row.addWidget(QLabel("封面:"))
         cover_row.addWidget(self.in_cover)
         cover_row.addWidget(btn_cover)
+        compact_layout.addLayout(cover_row)
 
+        replace_row = QHBoxLayout()
         self.chk_replace_cover = QCheckBox("强制替换已有封面")
-        self.chk_replace_cover.setToolTip("勾选后无论是否已有封面都会替换")
-
-        out_layout.addWidget(QLabel("封面图片:"))
-        out_layout.addLayout(cover_row)
-        out_layout.addWidget(self.chk_replace_cover)
+        replace_row.addWidget(self.chk_replace_cover)
+        replace_row.addStretch()
+        compact_layout.addLayout(replace_row)
 
         extract_row = QHBoxLayout()
         self.in_extract_dest = QLineEdit()
@@ -425,20 +407,27 @@ class App(QMainWindow):
         btn_extract = QPushButton("提取首卷封面")
         btn_extract.setFixedWidth(120)
         btn_extract.clicked.connect(self.on_extract_cover)
+        extract_row.addWidget(QLabel("提取封面:"))
         extract_row.addWidget(self.in_extract_dest)
         extract_row.addWidget(btn_extract_browse)
         extract_row.addWidget(btn_extract)
+        compact_layout.addLayout(extract_row)
 
-        out_layout.addWidget(QLabel("从第一卷提取封面:"))
-        out_layout.addLayout(extract_row)
-        # 加一个空的 stretch 保持对齐
-        out_layout.addStretch()
+        # 详细信息弹窗入口
+        detail_row = QHBoxLayout()
+        self.detail_hint = QLabel("详细信息未设置")
+        self.detail_hint.setStyleSheet("color: #666; font-size: 12px;")
+        btn_detail = QPushButton("详细信息…")
+        btn_detail.setFixedWidth(110)
+        btn_detail.clicked.connect(self.open_detail_dialog)
+        detail_row.addWidget(self.detail_hint)
+        detail_row.addStretch()
+        detail_row.addWidget(btn_detail)
+        compact_layout.addLayout(detail_row)
 
-        form_grid.addLayout(meta_layout, 1)
-        form_grid.addLayout(out_layout, 1)
-        settings_layout.addLayout(form_grid)
+        settings_layout.addLayout(compact_layout)
 
-        main_layout.addWidget(settings_card)
+        main_layout.addWidget(settings_card, stretch=2)
 
         # ----------------------------------------------------
         # 4. 底部操作栏 (Footer)
@@ -467,9 +456,11 @@ class App(QMainWindow):
         self.btn_del.clicked.connect(self.on_del)
         self.btn_clear.clicked.connect(self.on_clear)
         self.btn_run.clicked.connect(self.on_run)
-        
+
         # 快捷键
         QShortcut(QKeySequence.Delete, self.tree, activated=self.on_del)
+
+        self._refresh_detail_hint()
 
     # -----------------------------------------
     # 逻辑部分 (与之前保持一致)
@@ -618,6 +609,64 @@ class App(QMainWindow):
             self.in_extract_dest.setText(str(extracted))
         else:
             QMessageBox.warning(self, "提示", "未找到可提取的封面")
+
+    def open_detail_dialog(self):
+        dlg = QDialog(self)
+        dlg.setWindowTitle("详细信息")
+        dlg.setModal(True)
+
+        layout = QVBoxLayout(dlg)
+        form = QFormLayout()
+        form.setLabelAlignment(Qt.AlignRight)
+        form.setSpacing(12)
+
+        lang = QLineEdit(self.in_language.text())
+        publisher = QLineEdit(self.in_publisher.text())
+        published = QLineEdit(self.in_published.text())
+        isbn = QLineEdit(self.in_isbn.text())
+        subject = QLineEdit(self.in_subject.text())
+        desc = QTextEdit()
+        desc.setPlainText(self.in_description.toPlainText())
+        desc.setFixedHeight(90)
+
+        form.addRow("语言:", lang)
+        form.addRow("出版社:", publisher)
+        form.addRow("出版日期:", published)
+        form.addRow("ISBN:", isbn)
+        form.addRow("主题/标签:", subject)
+        form.addRow("简介:", desc)
+
+        layout.addLayout(form)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        layout.addWidget(buttons)
+
+        if dlg.exec() == QDialog.Accepted:
+            self.in_language.setText(lang.text().strip())
+            self.in_publisher.setText(publisher.text().strip())
+            self.in_published.setText(published.text().strip())
+            self.in_isbn.setText(isbn.text().strip())
+            self.in_subject.setText(subject.text().strip())
+            self.in_description.setPlainText(desc.toPlainText().strip())
+            self._refresh_detail_hint()
+
+    def _refresh_detail_hint(self):
+        has_detail = any([
+            self.in_language.text().strip(),
+            self.in_publisher.text().strip(),
+            self.in_published.text().strip(),
+            self.in_isbn.text().strip(),
+            self.in_subject.text().strip(),
+            self.in_description.toPlainText().strip(),
+        ])
+        if has_detail:
+            self.detail_hint.setText("已设置详细信息")
+            self.detail_hint.setStyleSheet("color: #007AFF; font-size: 12px;")
+        else:
+            self.detail_hint.setText("详细信息未设置")
+            self.detail_hint.setStyleSheet("color: #666; font-size: 12px;")
 
 if __name__ == "__main__":
     # 高分屏支持
